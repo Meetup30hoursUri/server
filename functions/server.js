@@ -47,8 +47,15 @@ var user = users[index];
 user.id = index;
     const userConst = user;
     const email = user.email;
+
+   // ref.orderByChild('user/email').equalTo(req.body.email).on("value", function (snapshot) {
+     //   snapshot.forEach(function (data) {
+       //     sendUSerExistError(res);
+       // });
+    //});
 sendToken(user, res);
-ref.push({user: userToSave}).then((snapshot) => {
+    ref.push({ user: userConst }).then((snapshot) => {
+
    })
 })
 
@@ -78,6 +85,10 @@ var userExists = false;
 
 function sendAuthError(res) {
     return res.json({success: false, message: 'email or password incorrect'});
+}
+
+function sendUSerExistError(res) {
+    return res.json({ success: false, message: 'user already exist' });
 }
 
 function sendToken(user, res) {
