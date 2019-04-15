@@ -15,6 +15,9 @@ var config = {
 firebase.initializeApp(config);
 
 var ref = firebase.database().ref('/users');
+var lecturersRef = firebase.database().ref('/lecturers');
+var organizersRef = firebase.database().ref('/organizers');
+
 
 var messages = [{test: 'some text', owner: 'Tim'}, {test: 'other message', owner: 'Jane'}];
 var users = [];
@@ -42,21 +45,42 @@ res.sendStatus(200);
 
 auth.post('/register', (req, res) => {
 var index = users.push(req.body) - 1;
-var index = users.push(req.body) - 1;
+
 var user = users[index];
-user.id = index;
-    const userConst = user;
+    user.id = index;
+    var userToSave = user;
     const email = user.email;
+
+    
+  
 
    // ref.orderByChild('user/email').equalTo(req.body.email).on("value", function (snapshot) {
      //   snapshot.forEach(function (data) {
        //     sendUSerExistError(res);
        // });
     //});
-sendToken(user, res);
-    ref.push({ user: userConst }).then((snapshot) => {
+    var userKey;
 
-   })
+    ref.push({ user: userToSave }).then((snapshot) => {
+        console.log(snapshot.key);
+        userKey = snapshot.key;
+        user.userKey = userKey;
+    }).then(() => {
+        sendToken(user, res);
+    })
+   
+       
+    
+   
+    if (req.body.role == "Lecturer") {
+        lecturersRef.push({ user: userToSave }).then((snapshot) => {
+        })
+    } else if (req.body.role == "Lecturer") {
+        organizersRef.push({ user: userToSave }).then((snapshot) => {
+        })
+    }
+   // user.userKey = userKey;
+  //  sendToken(user, res);
 })
 
 auth.post('/login', (req, res) => {
@@ -64,10 +88,11 @@ var userExists = false;
     ref.orderByChild('user/email').equalTo(req.body.email).on("value", function (snapshot) {
       
         var userDB;
+        var userKey;
         snapshot.forEach(function (data) {
             userExists = true;
             userDB = data.val().user;
-            userDB = data.val().user;
+            userKey = data.key;
         })
 
         if (!userExists) {
@@ -76,8 +101,11 @@ var userExists = false;
             sendAuthError(res);
         }
 
-        if (userDB.password == req.body.password)
+        if (userDB.password == req.body.password) {
+            user.userKey = userKey;
             sendToken(userDB, res);
+        }
+            
 
         else sendAuthError(res);
     });
@@ -93,7 +121,9 @@ function sendUSerExistError(res) {
 
 function sendToken(user, res) {
     var token = jwt.sign(user.id, '123');
-    res.json({firstName: user.firstName, role:user.role, token});
+    user.token = token;
+    res.json({ user: user} );
+    //res.json({firstName: user.firstName, role:user.role, token});
 }
 
 
